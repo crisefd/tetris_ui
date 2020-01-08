@@ -19,7 +19,7 @@ defmodule TetrisUi.MixProject do
   def application do
     [
       mod: {TetrisUi.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :tetris]
     ]
   end
 
@@ -40,7 +40,8 @@ defmodule TetrisUi.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:phoenix_live_view, "~> 0.4.0"},
-      {:floki, ">= 0.0.0", only: :test}
+      {:floki, ">= 0.0.0", only: :test},
+      {:tetris, git: "https://github.com/crisefd/tetris"}
     ]
   end
 end
