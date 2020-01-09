@@ -51,7 +51,8 @@ config :tetris_ui, TetrisUiWeb.Endpoint,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/tetris_ui_web/{live,views}/.*(ex)$",
+      ~r"lib/tetris_ui_web/views/.*(ex)$",
+      ~r"lib/tetris_ui_web/live/.*(ex)$",
       ~r"lib/tetris_ui_web/templates/.*(eex)$"
     ]
   ]
