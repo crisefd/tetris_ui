@@ -41,7 +41,8 @@ defmodule TetrisUi.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:phoenix_live_view, "~> 0.4.0"},
       {:floki, ">= 0.0.0", only: :test},
-      {:tetris, git: "https://github.com/crisefd/tetris"}
+      {:tetris, git: "https://github.com/crisefd/tetris"},
+      {:dialyxir, git: "https://github.com/jeremyjh/dialyxir", only: [:dev], runtime: false},
     ]
   end
 end
