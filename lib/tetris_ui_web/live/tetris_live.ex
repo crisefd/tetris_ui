@@ -30,7 +30,7 @@ defmodule TetrisUiWeb.TetrisLive do
   def render(assigns) do
     ~L"""
       <h1>Tetromino</h1>
-      <div> 
+      <div phx-keydown="keydown" phx-target="window"> 
       <%= raw svg_header() %>
       <%= raw boxes(@tetromino) %> 
       <%= raw svg_footer() %>
@@ -41,10 +41,10 @@ defmodule TetrisUiWeb.TetrisLive do
   def new_game(socket) do
     socket
     |> assign( state: :playing, score: 0)
-    |> display
+    |> initialize
   end
 
-  def display(socket) do
+  def initialize(socket) do
     socket
     |> new_brick
     |> new_tetromino
@@ -59,11 +59,11 @@ defmodule TetrisUiWeb.TetrisLive do
   end
 
   def new_tetromino(socket = %{assigns: %{brick: brick}}) do
-    brick_color = Brick.color brick
-
+    brick_color = brick |> Brick.color
     shape =
       brick
-      |> Brick.prepare()
+      |> Brick.prepare
+      |> Shape.translate(brick.location)
       |> Shape.with_color(brick_color)
 
     assign(socket, tetromino: shape)
@@ -85,6 +85,7 @@ defmodule TetrisUiWeb.TetrisLive do
     """
       <svg
       version="1.0"
+      style="background-color: #F8F8F8"
       id="Layer_1"
       xmlns="http://wwww.w3.org/2000/svg"
       xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -108,7 +109,7 @@ defmodule TetrisUiWeb.TetrisLive do
      <rect
      x="#{x + 1}" y="#{y + 1}"
      style="fill:##{shade};"
-     width="#{w - 2}" height="#{h - 2}"
+     width="#{w - 2}" height="#{h - 1}"
      />
     """
   end
@@ -135,6 +136,60 @@ defmodule TetrisUiWeb.TetrisLive do
      #{triangle(point, shades(color).dark)}
     """
   end
+
+  ####### Move the tetromino
+
+  for {function, movement} <- 
+        [&Brick.left/1, &Brick.right/1, &Brick.rotate/1]
+        |> Enum.map(&Macro.escape/1)
+        |> Enum.zip([:left, :right, :turn]) do
+
+      def do_move(socket = %{assigns: %{brick: brick}}, unquote(movement)) do
+        assign(socket, brick: unquote(function).(brick))
+      end
+  end
+
+  def move(direction, socket) do
+    socket
+    |> do_move(direction)
+    |> new_tetromino()
+  end
+
+
+  # def do_move(%{assigns: %{brick: brick}} = socket, :right) do
+  #   assign(socket, brick: brick |> Brick.right)
+  # end
+
+  # def do_move(%{assigns: %{brick: brick}} = socket, :turn) do
+  #   assign(socket, brick: brick |> Brick.rotate)
+  # end
+
+  ###### Event handlers
+
+  for {movement, key} 
+      <- [left: "ArrowLeft", right: "ArrowRight", turn: "ArrowUp"] do
+
+    def handle_event("keydown", %{"key" => unquote(key)}, socket) do
+      {:noreply,  move(unquote(movement), socket)}
+    end
+  end
+
+  def handle_event("keydown", _, socket), do: {:noreply, socket}
+
+  # def handle_event("keydown", %{"key" => "ArrowLeft"}, socket) do
+  #   {:noreply,  move(:left, socket)}
+  # end
+
+  # def handle_event("keydown", %{"key" => "ArrowRight"}, socket) do
+  #   {:noreply,  move(:right, socket)}
+  # end
+
+  # def handle_event("keydown", %{"key" => "ArrowUp"}, socket) do
+  #   {:noreply,  move(:turn, socket)}
+  # end
+
+
+  #### Private functions
 
   @spec to_pixels(point) :: point
 
