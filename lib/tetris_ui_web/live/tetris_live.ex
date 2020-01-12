@@ -9,6 +9,7 @@ defmodule TetrisUiWeb.TetrisLive do
   @type point :: Brick.point()
   @type color :: Brick.color()
   @type shape :: Shape.t()
+  @type brick :: Brick.t()
 
   @box_height 20
   @box_width 20
@@ -27,13 +28,21 @@ defmodule TetrisUiWeb.TetrisLive do
     { :ok, new_game(socket) }
   end
 
-  def render(assigns) do
+  def render(assigns = %{state: :game_over}) do
     ~L"""
-      <h1>Tetromino</h1>
+      <h1>Game Over</h1>
+      <%= debug(assigns) %>
+    """
+  end
+
+  def render(assigns = %{state: :playing}) do
+    ~L"""
+      <h1><%= @score %></h1>
       <div phx-keydown="keydown" phx-target="window"> 
-      <%= raw svg_header() %>
-      <%= raw boxes(@tetromino) %> 
-      <%= raw svg_footer() %>
+        <%= svg_header() |> raw() %>
+        <%= @tetromino |> boxes() |> raw() %>
+        <%= @bottom |> Map.values() |> boxes() |> raw() %>
+        <%= svg_footer() |> raw() %>
       </div>
       <%= debug(assigns) %>
     """
@@ -42,26 +51,32 @@ defmodule TetrisUiWeb.TetrisLive do
   def new_game(socket) do
     socket
     |> assign( state: :playing,
-               score: 0, 
+               score: 0,
                bottom: %{})
     |> initialize
   end
 
+  @spec initialize(map) :: map
+
   def initialize(socket) do
     socket
     |> new_brick
-    |> new_tetromino
+    |> display
   end
+
+  @spec new_brick(map) :: map
 
   def new_brick(socket) do
     brick = 
       Brick.new(:random)
-      |> Map.put(:location, {3, 1})
+      |> Map.put(:location, {3, -3})
 
     assign(socket, brick: brick)
   end
 
-  def new_tetromino(socket = %{assigns: %{brick: brick}}) do
+  @spec display(map) :: map
+
+  def display(socket = %{assigns: %{brick: brick}}) do
     brick_color = brick |> Brick.color
     shape =
       brick
@@ -142,24 +157,38 @@ defmodule TetrisUiWeb.TetrisLive do
 
   ####### Move the tetromino
 
-  def drop(brick, _bottom) do
-    Brick.down(brick)
+  @spec drop(brick, map, integer) :: map
+
+  def drop(brick, bottom, score) do
+    result = Tetris.drop(brick, bottom, Brick.color(brick))
+    %{state: (if result.game_over, do: :game_over, else: :playing),
+      brick: result.brick,
+      bottom: result.bottom,
+      score: score + result.score }
+  end
+
+  @spec do_move(map, atom) :: map
+
+  def do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :down) do
+    assign(socket, drop(brick, bottom, score))
   end
 
   for {function, movement} <- 
-        [&Tetris.try_left/2, &Tetris.try_right/2, &Tetris.try_rotate/2, &TetrisUiWeb.TetrisLive.drop/1]
+        [&Tetris.try_left/2, &Tetris.try_right/2, &Tetris.try_rotate/2]
         |> Enum.map(&Macro.escape/1)
-        |> Enum.zip([:left, :right, :turn, :down]) do
+        |> Enum.zip([:left, :right, :turn]) do
 
       def do_move(socket = %{assigns: %{brick: brick, bottom: bottom}}, unquote(movement)) do
         assign(socket, brick: unquote(function).(brick, bottom))
       end
   end
 
+  @spec move(atom, map) :: map
+
   def move(direction, socket) do
     socket
     |> do_move(direction)
-    |> new_tetromino()
+    |> display()
   end
 
 
@@ -204,6 +233,7 @@ defmodule TetrisUiWeb.TetrisLive do
   def debug(assigns, true, :dev) do
     ~L"""
       <pre> <%= @tetromino |> inspect |> raw %> </pre>
+      <pre> <%= @bottom |> inspect |> raw %> </pre>
      """
   end
 
