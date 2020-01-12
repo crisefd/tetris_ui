@@ -13,6 +13,7 @@ defmodule TetrisUiWeb.TetrisLive do
 
   @box_height 20
   @box_width 20
+  @drop_interval_duration 500
 
   @debug true
 
@@ -25,12 +26,22 @@ defmodule TetrisUiWeb.TetrisLive do
   ] 
 
   def mount(_session, socket) do
-    { :ok, new_game(socket) }
+    :timer.send_interval @drop_interval_duration, self(), :tick
+    { :ok, start_game(socket) }
+  end
+
+  def render(assigns = %{state: :starting}) do
+    ~L"""
+      <h1>Welcome to Tetris</h1>
+      <button phx-click="start"> Start </button>
+    """
   end
 
   def render(assigns = %{state: :game_over}) do
     ~L"""
       <h1>Game Over</h1>
+      <h2>Your final score is: <%= @score %></h2>
+      <button phx-click="start"> Start again </button>
       <%= debug(assigns) %>
     """
   end
@@ -48,18 +59,15 @@ defmodule TetrisUiWeb.TetrisLive do
     """
   end
 
+  def start_game(socket) do
+    assign(socket,  state: :starting)
+  end
+
   def new_game(socket) do
     socket
     |> assign( state: :playing,
                score: 0,
                bottom: %{})
-    |> initialize
-  end
-
-  @spec initialize(map) :: map
-
-  def initialize(socket) do
-    socket
     |> new_brick
     |> display
   end
@@ -169,8 +177,17 @@ defmodule TetrisUiWeb.TetrisLive do
 
   @spec do_move(map, atom) :: map
 
-  def do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :down) do
+  def do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :drop) do
     assign(socket, drop(brick, bottom, score))
+  end
+
+  def do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :fast_drop) do
+    result = drop(brick, bottom, score)
+    if Brick.initial_location == result.brick.location  do
+      socket |> assign(result)
+    else 
+      socket |> assign(result) |> do_move(:fast_drop)
+    end
   end
 
   for {function, movement} <- 
@@ -204,8 +221,7 @@ defmodule TetrisUiWeb.TetrisLive do
 
   for {movement, key} 
       <- [left: "ArrowLeft",
-          right: "ArrowRight", 
-          down: "ArrowDown",
+          right: "ArrowRight",
           turn: "ArrowUp"] do
 
     def handle_event("keydown", %{"key" => unquote(key)}, socket) do
@@ -213,7 +229,19 @@ defmodule TetrisUiWeb.TetrisLive do
     end
   end
 
+  def handle_event("keydown", %{"key" => "ArrowDown"}, socket) do
+    {:noreply,  move(:fast_drop, socket)}
+  end
+
   def handle_event("keydown", _, socket), do: {:noreply, socket}
+
+  def handle_event("start", _, socket), do: {:noreply, new_game(socket)}
+
+  def handle_info(:tick, socket = %{assigns: %{state: :playing}}) do
+     {:noreply, move(:drop, socket)}
+  end
+
+  def handle_info(:tick, socket), do:  {:noreply, socket}
 
   # def handle_event("keydown", %{"key" => "ArrowLeft"}, socket) do
   #   {:noreply,  move(:left, socket)}
