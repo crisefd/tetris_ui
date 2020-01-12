@@ -13,7 +13,7 @@ defmodule TetrisUiWeb.TetrisLive do
   @box_height 20
   @box_width 20
 
-  # @type color :: :red | :blue | :green | :orange | :grey
+  @debug true
 
   @shades_list [
     %Shades{light: "DB7160", dark: "AB574B"},
@@ -35,12 +35,15 @@ defmodule TetrisUiWeb.TetrisLive do
       <%= raw boxes(@tetromino) %> 
       <%= raw svg_footer() %>
       </div>
+      <%= debug(assigns) %>
     """
   end
 
   def new_game(socket) do
     socket
-    |> assign( state: :playing, score: 0)
+    |> assign( state: :playing,
+               score: 0, 
+               bottom: %{})
     |> initialize
   end
 
@@ -63,7 +66,7 @@ defmodule TetrisUiWeb.TetrisLive do
     shape =
       brick
       |> Brick.prepare
-      |> Shape.translate(brick.location)
+      |> Shape.traslate(brick.location)
       |> Shape.with_color(brick_color)
 
     assign(socket, tetromino: shape)
@@ -139,13 +142,17 @@ defmodule TetrisUiWeb.TetrisLive do
 
   ####### Move the tetromino
 
-  for {function, movement} <- 
-        [&Brick.left/1, &Brick.right/1, &Brick.rotate/1]
-        |> Enum.map(&Macro.escape/1)
-        |> Enum.zip([:left, :right, :turn]) do
+  def drop(brick, _bottom) do
+    Brick.down(brick)
+  end
 
-      def do_move(socket = %{assigns: %{brick: brick}}, unquote(movement)) do
-        assign(socket, brick: unquote(function).(brick))
+  for {function, movement} <- 
+        [&Tetris.try_left/2, &Tetris.try_right/2, &Tetris.try_rotate/2, &TetrisUiWeb.TetrisLive.drop/1]
+        |> Enum.map(&Macro.escape/1)
+        |> Enum.zip([:left, :right, :turn, :down]) do
+
+      def do_move(socket = %{assigns: %{brick: brick, bottom: bottom}}, unquote(movement)) do
+        assign(socket, brick: unquote(function).(brick, bottom))
       end
   end
 
@@ -167,7 +174,10 @@ defmodule TetrisUiWeb.TetrisLive do
   ###### Event handlers
 
   for {movement, key} 
-      <- [left: "ArrowLeft", right: "ArrowRight", turn: "ArrowUp"] do
+      <- [left: "ArrowLeft",
+          right: "ArrowRight", 
+          down: "ArrowDown",
+          turn: "ArrowUp"] do
 
     def handle_event("keydown", %{"key" => unquote(key)}, socket) do
       {:noreply,  move(unquote(movement), socket)}
@@ -188,12 +198,23 @@ defmodule TetrisUiWeb.TetrisLive do
   #   {:noreply,  move(:turn, socket)}
   # end
 
+  ### Debug
+
+  def debug(assigns), do: debug(assigns, @debug, Mix.env)
+  def debug(assigns, true, :dev) do
+    ~L"""
+      <pre> <%= @tetromino |> inspect |> raw %> </pre>
+     """
+  end
+
+  def debug(_, _, _), do: ""
+
 
   #### Private functions
 
   @spec to_pixels(point) :: point
 
-  defp to_pixels({x, y}), do: {x * @box_width, y * @box_height}
+  defp to_pixels({x, y}), do: {(x - 1) * @box_width, (y - 1) * @box_height}
 
   @spec shades(atom) :: shades
 
