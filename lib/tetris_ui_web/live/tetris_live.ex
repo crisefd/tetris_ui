@@ -61,11 +61,28 @@ defmodule TetrisUiWeb.TetrisLive do
     """
   end
 
-  ### Initialization logic
+  def render(assigns = %{state: :paused}) do
+    ~L"""
+      <h1><%= @score %></h1>
+      <div phx-keydown="keydown" phx-target="window"> 
+        <%= svg_header() |> raw() %>
+        <%= @tetromino |> boxes() |> raw() %>
+        <%= @bottom |> Map.values() |> boxes() |> raw() %>
+        <%= svg_footer() |> raw() %>
+      </div>
+      <%= debug(assigns) %>
+    """
+  end
+
+  ### High-level game logic
 
   def start_game(socket) do
     assign(socket, state: :starting)
   end
+
+  def pause_game(socket), do: assign(socket, state: :paused)
+
+  def continue_game(socket), do: assign(socket, state: :playing)
 
   def new_game(socket) do
     socket
@@ -214,19 +231,34 @@ defmodule TetrisUiWeb.TetrisLive do
 
   @spec move(atom, map) :: map
 
+  def move(_, socket = %{assigns: %{state: :paused}}), do: socket
+
   def move(direction, socket) do
     socket
     |> do_move(direction)
     |> display()
   end
 
-  ###### Event & info handlers
+  ###### Genserver's events & info handlers
 
   for {movement, key} <-
         [left: "ArrowLeft", right: "ArrowRight", turn: "ArrowUp", fast_drop: "ArrowDown"] do
     def handle_event("keydown", %{"key" => unquote(key)}, socket) do
       {:noreply, move(unquote(movement), socket)}
     end
+  end
+
+  def handle_event("keydown", %{"key" => "Escape"}, socket) do
+    new_socket = 
+      case socket.assigns do
+        %{state: :paused} ->
+          continue_game(socket)
+        %{state: :playing} -> 
+          pause_game(socket)
+        _ ->
+          socket
+      end
+    {:noreply, new_socket}
   end
 
   def handle_event("keydown", _, socket), do: {:noreply, socket}
