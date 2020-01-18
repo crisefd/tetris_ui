@@ -5,6 +5,8 @@ defmodule TetrisUiWeb.ErrorHelpers do
 
   use Phoenix.HTML
 
+  @dialyzer {:nowarn_function, error_tag: 2}
+
   @doc """
   Generates tag for inlined form input errors.
   """
@@ -13,6 +15,8 @@ defmodule TetrisUiWeb.ErrorHelpers do
       content_tag(:span, translate_error(error), class: "help-block")
     end)
   end
+
+  @dialyzer {:nowarn_function, translate_error: 1}
 
   @doc """
   Translates an error message using gettext.

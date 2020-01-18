@@ -5,7 +5,7 @@ defmodule TetrisUiWeb.TetrisView do
   alias Tetris.Brick
   alias TetrisUi.Shades
 
-  @debug false
+  @debug Application.get_env(:tetris_ui, :debug)
 
   @type shades :: Shades.t()
   @type point :: Brick.point()
@@ -95,27 +95,26 @@ defmodule TetrisUiWeb.TetrisView do
 
   ### Debug
 
-  def debug(assigns), do: debug(assigns, @debug, Mix.env())
+  def debug(assigns), do: debug(assigns, @debug)
 
-  def debug(assigns, true, :dev) do
+  def debug(assigns, true) do
     TetrisUiWeb.TetrisView.render("debug.html", assigns)
   end
 
-  def debug(_, _, _), do: ""
+  def debug(_, _), do: ""
 
-    #### Private functions
+  #### Private functions
 
-    @spec to_pixels(point) :: point
+  @spec to_pixels(point) :: point
 
-    defp to_pixels({x, y}), do: {(x - 1) * @box_width, (y - 1) * @box_height}
+  defp to_pixels({x, y}), do: {(x - 1) * @box_width, (y - 1) * @box_height}
 
-    @spec shades(atom) :: shades
+  @spec shades(atom) :: shades
 
-    for {shades, color} <-
-          @shades_list
-          |> Enum.map(&Macro.escape/1)
-          |> Enum.zip(Brick.all_colors()) do
-      defp shades(unquote(color)), do: unquote(shades)
-    end
-
+  for {shades, color} <-
+        @shades_list
+        |> Enum.map(&Macro.escape/1)
+        |> Enum.zip(Brick.all_colors()) do
+    defp shades(unquote(color)), do: unquote(shades)
+  end
 end

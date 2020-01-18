@@ -21,6 +21,9 @@ config :tetris_ui, TetrisUiWeb.Endpoint,
     ]
   ]
 
+config :tetris_ui,
+       debug: true
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

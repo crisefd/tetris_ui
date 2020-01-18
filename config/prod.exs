@@ -13,6 +13,9 @@ config :tetris_ui, TetrisUiWeb.Endpoint,
   url: [host: "tg.pl", port: 443],
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+config :tetris_ui,
+       debug: false
+
 # Do not print debug messages in production
 config :logger, level: :info
 

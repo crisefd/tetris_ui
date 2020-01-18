@@ -10,7 +10,7 @@ defmodule TetrisUiWeb.TetrisLive do
   @type shape :: Shape.t()
   @type brick :: Brick.t()
   @type socket :: Phoenix.LiveView.Socket.t()
-  @type state :: :game_over | :paused | :playing | :paused
+  @type state :: :game_over | :starting | :playing | :paused
   @type rendered :: Phoenix.LiveView.Rendered.t()
 
   @drop_interval_duration 500
@@ -30,7 +30,7 @@ defmodule TetrisUiWeb.TetrisLive do
   end
 
   def render(assigns = %{state: :game_over}) do
-   TetrisUiWeb.TetrisView.render("game_over.html", assigns)
+    TetrisUiWeb.TetrisView.render("game_over.html", assigns)
   end
 
   def render(assigns = %{state: :playing}) do
@@ -93,57 +93,7 @@ defmodule TetrisUiWeb.TetrisLive do
     assign(socket, tetromino: shape)
   end
 
-  ####### Movements
-
-  @spec drop(brick, map, integer) :: map
-
-  def drop(brick, bottom, score) do
-    result = Tetris.drop(brick, bottom, Brick.color(brick))
-
-    %{
-      state: if(result.game_over, do: :game_over, else: :playing),
-      brick: result.brick,
-      bottom: result.bottom,
-      score: score + result.score
-    }
-  end
-
-  @spec do_move(socket, atom) :: socket
-
-  def do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :drop) do
-    assign(socket, drop(brick, bottom, score))
-  end
-
-  def do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :fast_drop) do
-    result = drop(brick, bottom, score)
-
-    if Brick.initial_location() == result.brick.location do
-      socket |> assign(result)
-    else
-      socket |> assign(result) |> do_move(:fast_drop)
-    end
-  end
-
-  for {function, movement} <-
-        [&Tetris.try_left/2, &Tetris.try_right/2, &Tetris.try_rotate/2]
-        |> Enum.map(&Macro.escape/1)
-        |> Enum.zip([:left, :right, :turn]) do
-    def do_move(socket = %{assigns: %{brick: brick, bottom: bottom}}, unquote(movement)) do
-      assign(socket, brick: unquote(function).(brick, bottom))
-    end
-  end
-
-  @spec move(atom, socket) :: socket
-
-  def move(_, socket = %{assigns: %{state: :paused}}), do: socket
-
-  def move(direction, socket) do
-    socket
-    |> do_move(direction)
-    |> display()
-  end
-
-  ###### Genserver's events & info handlers
+  ###### Events & info handlers
 
   for {movement, key} <-
         [left: "ArrowLeft", right: "ArrowRight", turn: "ArrowUp", fast_drop: "ArrowDown"] do
@@ -157,11 +107,14 @@ defmodule TetrisUiWeb.TetrisLive do
       case socket.assigns do
         %{state: :paused} ->
           continue_game(socket)
+
         %{state: :playing} ->
           pause_game(socket)
+
         _ ->
           socket
       end
+
     {:noreply, new_socket}
   end
 
@@ -175,4 +128,53 @@ defmodule TetrisUiWeb.TetrisLive do
 
   def handle_info(:tick, socket), do: {:noreply, socket}
 
+  ####### Movements
+
+  @spec drop(brick, map, integer) :: map
+
+  defp drop(brick, bottom, score) do
+    result = Tetris.drop(brick, bottom, Brick.color(brick))
+
+    %{
+      state: if(result.game_over, do: :game_over, else: :playing),
+      brick: result.brick,
+      bottom: result.bottom,
+      score: score + result.score
+    }
+  end
+
+  @spec do_move(socket, atom) :: socket
+
+  defp do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :drop) do
+    assign(socket, drop(brick, bottom, score))
+  end
+
+  defp do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :fast_drop) do
+    result = drop(brick, bottom, score)
+
+    if Brick.initial_location() == result.brick.location do
+      socket |> assign(result)
+    else
+      socket |> assign(result) |> do_move(:fast_drop)
+    end
+  end
+
+  for {function, movement} <-
+        [&Tetris.try_left/2, &Tetris.try_right/2, &Tetris.try_rotate/2]
+        |> Enum.map(&Macro.escape/1)
+        |> Enum.zip([:left, :right, :turn]) do
+    defp do_move(socket = %{assigns: %{brick: brick, bottom: bottom}}, unquote(movement)) do
+      assign(socket, brick: unquote(function).(brick, bottom))
+    end
+  end
+
+  @spec move(atom, socket) :: socket
+
+  defp move(_, socket = %{assigns: %{state: :paused}}), do: socket
+
+  defp move(direction, socket) do
+    socket
+    |> do_move(direction)
+    |> display()
+  end
 end
