@@ -1,6 +1,5 @@
 defmodule TetrisUiWeb.TetrisLive do
   use Phoenix.LiveView
-  import Phoenix.HTML, only: [raw: 1]
   alias Tetris.Brick
   alias Tetris.Shape
   alias TetrisUi.Shades
@@ -10,80 +9,55 @@ defmodule TetrisUiWeb.TetrisLive do
   @type color :: Brick.color()
   @type shape :: Shape.t()
   @type brick :: Brick.t()
+  @type socket :: Phoenix.LiveView.Socket.t()
+  @type state :: :game_over | :paused | :playing | :paused
+  @type rendered :: Phoenix.LiveView.Rendered.t()
 
-  @box_height 20
-  @box_width 20
   @drop_interval_duration 500
 
-  @debug false
+  ### LiveView
 
-  @shades_list [
-    %Shades{light: "DB7160", dark: "AB574B"},
-    %Shades{light: "83C1C8", dark: "66969C"},
-    %Shades{light: "8BBF57", dark: "769359"},
-    %Shades{light: "CB8E4E", dark: "AC7842"},
-    %Shades{light: "A1A09E", dark: "7F7F7E"}
-  ]
-
-  ### Liveview behaviours
-
+  @spec mount(any, socket) :: {:ok, socket}
   def mount(_session, socket) do
     :timer.send_interval(@drop_interval_duration, self(), :tick)
     {:ok, start_game(socket)}
   end
 
+  @spec render(%{state: state}) :: rendered
+
   def render(assigns = %{state: :starting}) do
-    ~L"""
-      <h1>Welcome to Tetris</h1>
-      <button phx-click="start"> Start </button>
-    """
+    TetrisUiWeb.TetrisView.render("starting.html", assigns)
   end
 
   def render(assigns = %{state: :game_over}) do
-    ~L"""
-      <h1>Game Over</h1>
-      <h2>Your final score is: <%= @score %></h2>
-      <button phx-click="start"> Start again </button>
-      <%= debug(assigns) %>
-    """
+   TetrisUiWeb.TetrisView.render("game_over.html", assigns)
   end
 
   def render(assigns = %{state: :playing}) do
-    ~L"""
-      <h1><%= @score %></h1>
-      <div phx-keydown="keydown" phx-target="window"> 
-        <%= svg_header() |> raw() %>
-        <%= @tetromino |> boxes() |> raw() %>
-        <%= @bottom |> Map.values() |> boxes() |> raw() %>
-        <%= svg_footer() |> raw() %>
-      </div>
-      <%= debug(assigns) %>
-    """
+    TetrisUiWeb.TetrisView.render("initialized.html", assigns)
   end
 
   def render(assigns = %{state: :paused}) do
-    ~L"""
-      <h1><%= @score %></h1>
-      <div phx-keydown="keydown" phx-target="window"> 
-        <%= svg_header() |> raw() %>
-        <%= @tetromino |> boxes() |> raw() %>
-        <%= @bottom |> Map.values() |> boxes() |> raw() %>
-        <%= svg_footer() |> raw() %>
-      </div>
-      <%= debug(assigns) %>
-    """
+    TetrisUiWeb.TetrisView.render("initialized.html", assigns)
   end
 
   ### High-level game logic
+
+  @spec start_game(socket) :: socket
 
   def start_game(socket) do
     assign(socket, state: :starting)
   end
 
+  @spec pause_game(socket) :: socket
+
   def pause_game(socket), do: assign(socket, state: :paused)
+
+  @spec continue_game(socket) :: socket
 
   def continue_game(socket), do: assign(socket, state: :playing)
 
+  @spec new_game(socket) :: socket
   def new_game(socket) do
     socket
     |> assign(
@@ -95,7 +69,7 @@ defmodule TetrisUiWeb.TetrisLive do
     |> display
   end
 
-  @spec new_brick(map) :: map
+  @spec new_brick(socket) :: socket
 
   def new_brick(socket) do
     brick =
@@ -105,9 +79,7 @@ defmodule TetrisUiWeb.TetrisLive do
     assign(socket, brick: brick)
   end
 
-  ### Visualization logic
-
-  @spec display(map) :: map
+  @spec display(socket) :: socket
 
   def display(socket = %{assigns: %{brick: brick}}) do
     brick_color = brick |> Brick.color()
@@ -119,74 +91,6 @@ defmodule TetrisUiWeb.TetrisLive do
       |> Shape.with_color(brick_color)
 
     assign(socket, tetromino: shape)
-  end
-
-  @spec boxes(shape) :: binary
-
-  def boxes(colored_shape) do
-    colored_shape
-    |> Enum.map(fn {x, y, color} ->
-      box({x, y}, color)
-    end)
-    |> Enum.join("\n")
-  end
-
-  @spec svg_header :: binary
-
-  def svg_header do
-    """
-      <svg
-      version="1.0"
-      style="background-color: #F8F8F8"
-      id="Layer_1"
-      xmlns="http://wwww.w3.org/2000/svg"
-      xmlns:xlink="http://www.w3.org/1999/xlink"
-      width="200" height="400"
-      viewBox="0 0 200 400"
-      xml:space="preserve">
-    """
-  end
-
-  @spec svg_footer :: binary
-
-  def svg_footer, do: "</svg>"
-
-  @spec square(point, binary) :: binary
-
-  def square(point, shade) do
-    {x, y} = to_pixels(point)
-    {w, h} = {@box_width, @box_height}
-
-    """
-     <rect
-     x="#{x + 1}" y="#{y + 1}"
-     style="fill:##{shade};"
-     width="#{w - 2}" height="#{h - 1}"
-     />
-    """
-  end
-
-  @spec triangle(point, binary) :: binary
-
-  def triangle(point, shade) do
-    {x, y} = to_pixels(point)
-    {w, h} = {@box_width, @box_height}
-
-    """
-      <polyline
-      style="fill:##{shade};"
-      points="#{x + 1}, #{y + 1}  #{x + w}, #{y + 1}  #{x + w},  #{y + h}"
-      />
-    """
-  end
-
-  @spec box(point, color) :: binary
-
-  def box(point, color) do
-    """
-     #{square(point, shades(color).light)}
-     #{triangle(point, shades(color).dark)}
-    """
   end
 
   ####### Movements
@@ -204,7 +108,7 @@ defmodule TetrisUiWeb.TetrisLive do
     }
   end
 
-  @spec do_move(map, atom) :: map
+  @spec do_move(socket, atom) :: socket
 
   def do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :drop) do
     assign(socket, drop(brick, bottom, score))
@@ -229,7 +133,7 @@ defmodule TetrisUiWeb.TetrisLive do
     end
   end
 
-  @spec move(atom, map) :: map
+  @spec move(atom, socket) :: socket
 
   def move(_, socket = %{assigns: %{state: :paused}}), do: socket
 
@@ -249,11 +153,11 @@ defmodule TetrisUiWeb.TetrisLive do
   end
 
   def handle_event("keydown", %{"key" => "Escape"}, socket) do
-    new_socket = 
+    new_socket =
       case socket.assigns do
         %{state: :paused} ->
           continue_game(socket)
-        %{state: :playing} -> 
+        %{state: :playing} ->
           pause_game(socket)
         _ ->
           socket
@@ -271,31 +175,4 @@ defmodule TetrisUiWeb.TetrisLive do
 
   def handle_info(:tick, socket), do: {:noreply, socket}
 
-  ### Debug
-
-  def debug(assigns), do: debug(assigns, @debug, Mix.env())
-
-  def debug(assigns, true, :dev) do
-    ~L"""
-     <pre> <%= @tetromino |> inspect |> raw %> </pre>
-     <pre> <%= @bottom |> inspect |> raw %> </pre>
-    """
-  end
-
-  def debug(_, _, _), do: ""
-
-  #### Private functions
-
-  @spec to_pixels(point) :: point
-
-  defp to_pixels({x, y}), do: {(x - 1) * @box_width, (y - 1) * @box_height}
-
-  @spec shades(atom) :: shades
-
-  for {shades, color} <-
-        @shades_list
-        |> Enum.map(&Macro.escape/1)
-        |> Enum.zip(Brick.all_colors()) do
-    defp shades(unquote(color)), do: unquote(shades)
-  end
 end

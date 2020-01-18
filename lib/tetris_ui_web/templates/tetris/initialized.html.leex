@@ -1,0 +1,8 @@
+<h1><%= @score %></h1>
+<div phx-keydown="keydown" phx-target="window"> 
+<%= svg_header() |> raw() %>
+<%= @tetromino |> boxes() |> raw() %>
+<%= @bottom |> Map.values() |> boxes() |> raw() %>
+<%= svg_footer() |> raw() %>
+</div>
+<%= debug(assigns) %>
