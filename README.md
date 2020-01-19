@@ -12,3 +12,5 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 
 The low level game logic can be found [here](https://github.com/crisefd/tetris).
+
+![Tetris in action](tetris-screen-shot.png)
