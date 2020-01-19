@@ -132,3 +132,13 @@ header nav a {
     margin: 2rem 1rem;
   }
 }
+
+.game-field {
+  max-width: 500px;
+  transform: translate(-100px, 10px);
+}
+
+.next {
+  max-width: 110px;
+  transform: translate(210px, -400px);
+}

@@ -5,8 +5,6 @@ defmodule TetrisUiWeb.TetrisView do
   alias Tetris.Brick
   alias TetrisUi.Shades
 
-
-
   @type shades :: Shades.t()
   @type point :: Brick.point()
   @type color :: Brick.color()
@@ -37,9 +35,11 @@ defmodule TetrisUiWeb.TetrisView do
     |> Enum.join("\n")
   end
 
-  @spec svg_header :: binary
+  @spec svg_header({number, number, number, number}) :: binary
 
-  def svg_header do
+  def svg_header(view_box \\ {0, 0, 200, 400})
+
+  def svg_header({x, y, w, h}) do
     """
       <svg
       version="1.0"
@@ -47,8 +47,8 @@ defmodule TetrisUiWeb.TetrisView do
       id="Layer_1"
       xmlns="http://wwww.w3.org/2000/svg"
       xmlns:xlink="http://www.w3.org/1999/xlink"
-      width="200" height="400"
-      viewBox="0 0 200 400"
+      width="#{w}" height="#{h}"
+      viewBox="#{x} #{y} #{w} #{h}"
       xml:space="preserve">
     """
   end

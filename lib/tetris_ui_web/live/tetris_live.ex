@@ -72,22 +72,31 @@ defmodule TetrisUiWeb.TetrisLive do
     brick =
       Brick.new(:random)
       |> Map.put(:location, Brick.initial_location())
+    next_brick =
+      Brick.new(:random)
+      |> Map.put(:location, Brick.initial_location())
 
-    assign(socket, brick: brick)
+    assign(socket, brick: brick, next_brick: next_brick)
   end
 
   @spec display(socket) :: socket
 
-  def display(socket = %{assigns: %{brick: brick}}) do
+  def display(socket = %{assigns: %{brick: brick, next_brick: next_brick}}) do
     brick_color = brick |> Brick.color()
-
+    next_brick_color = next_brick |> Brick.color()
     shape =
       brick
       |> Brick.prepare()
       |> Shape.traslate(brick.location)
       |> Shape.with_color(brick_color)
 
-    assign(socket, tetromino: shape)
+    next_shape =
+      next_brick
+        |> Brick.prepare()
+        |> Shape.traslate({0, 1})
+        |> Shape.with_color(next_brick_color)
+
+    assign(socket, tetromino: shape, next: next_shape)
   end
 
   ###### Events & info handlers
@@ -127,14 +136,15 @@ defmodule TetrisUiWeb.TetrisLive do
 
   ####### Movements
 
-  @spec drop(brick, map, integer) :: map
+  @spec drop(brick, brick, map, integer) :: map
 
-  defp drop(brick, bottom, score) do
-    result = Tetris.drop(brick, bottom, Brick.color(brick))
+  defp drop(brick, next_brick, bottom, score) do
+    result = Tetris.drop(brick, next_brick, bottom, Brick.color(brick))
 
     %{
       state: if(result.game_over, do: :game_over, else: :playing),
       brick: result.brick,
+      next_brick: result.next_brick,
       bottom: result.bottom,
       score: score + result.score
     }
@@ -142,12 +152,18 @@ defmodule TetrisUiWeb.TetrisLive do
 
   @spec do_move(socket, atom) :: socket
 
-  defp do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :drop) do
-    assign(socket, drop(brick, bottom, score))
+  defp do_move(socket = %{assigns: %{brick: brick,
+                                     next_brick: next_brick,
+                                     bottom: bottom,
+                                     score: score}}, :drop) do
+    assign(socket, drop(brick, next_brick, bottom, score))
   end
 
-  defp do_move(socket = %{assigns: %{brick: brick, bottom: bottom, score: score}}, :fast_drop) do
-    result = drop(brick, bottom, score)
+  defp do_move(socket = %{assigns: %{brick: brick,
+                                     next_brick: next_brick,
+                                     bottom: bottom,
+                                     score: score}}, :fast_drop) do
+    result = drop(brick, next_brick, bottom, score)
 
     if Brick.initial_location() == result.brick.location do
       socket |> assign(result)

@@ -22,7 +22,7 @@ config :tetris_ui, TetrisUiWeb.Endpoint,
   ]
 
 config :tetris_ui,
-       debug: true
+       debug: false
 
 # ## SSL Support
 #

@@ -12,6 +12,16 @@
   </head>
 
   <body>
+  <header>
+      <section class="container">
+        <%# <nav role="navigation">
+          <ul>
+            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
+          </ul>
+        </nav> %>
+        <span> <h1>Tetris with Liveview </h1> </span>
+      </section>
+    </header>
     <div class="container">
 
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
