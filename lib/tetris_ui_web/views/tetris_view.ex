@@ -5,13 +5,15 @@ defmodule TetrisUiWeb.TetrisView do
   alias Tetris.Brick
   alias TetrisUi.Shades
 
-  @debug Application.get_env(:tetris_ui, :debug)
+
 
   @type shades :: Shades.t()
   @type point :: Brick.point()
   @type color :: Brick.color()
   @type shape :: Shape.t()
+  @type rendered :: Phoenix.LiveView.Rendered.t()
 
+  @debug Application.get_env(:tetris_ui, :debug, false)
   @box_height 20
   @box_width 20
 
@@ -95,13 +97,17 @@ defmodule TetrisUiWeb.TetrisView do
 
   ### Debug
 
+  @spec debug(%{tetromino: shape, bottom: map}) :: rendered
+
   def debug(assigns), do: debug(assigns, @debug)
+
+  @spec debug(%{tetromino: shape, bottom: map}, boolean) :: rendered
 
   def debug(assigns, true) do
     TetrisUiWeb.TetrisView.render("debug.html", assigns)
   end
 
-  def debug(_, _), do: ""
+  def debug(_, false), do: ""
 
   #### Private functions
 

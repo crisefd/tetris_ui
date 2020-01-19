@@ -25,20 +25,16 @@ defmodule TetrisUiWeb.TetrisLive do
 
   @spec render(%{state: state}) :: rendered
 
-  def render(assigns = %{state: :starting}) do
-    TetrisUiWeb.TetrisView.render("starting.html", assigns)
-  end
-
-  def render(assigns = %{state: :game_over}) do
-    TetrisUiWeb.TetrisView.render("game_over.html", assigns)
-  end
-
-  def render(assigns = %{state: :playing}) do
-    TetrisUiWeb.TetrisView.render("initialized.html", assigns)
-  end
-
-  def render(assigns = %{state: :paused}) do
-    TetrisUiWeb.TetrisView.render("initialized.html", assigns)
+  for {state, template} <-
+        [
+          starting: "starting.html",
+          game_over: "game_over.html",
+          playing: "initialized.html",
+          paused: "initialized.html"
+        ] do
+    def render(assigns = %{state: unquote(state)}) do
+      TetrisUiWeb.TetrisView.render(unquote(template), assigns)
+    end
   end
 
   ### High-level game logic
@@ -58,6 +54,7 @@ defmodule TetrisUiWeb.TetrisLive do
   def continue_game(socket), do: assign(socket, state: :playing)
 
   @spec new_game(socket) :: socket
+
   def new_game(socket) do
     socket
     |> assign(
