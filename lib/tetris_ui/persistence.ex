@@ -1,10 +1,11 @@
 defmodule TetrisUi.Persistence do
 
-  @file_path "../../assets/csv/ranking.csv"
 
-  @spec read_rankings :: list
+  @file_path Application.app_dir(:tetris_ui, "priv") <> "/csv/ranking.csv"
 
-  def read_rankings do
+  @spec read_ranking :: list
+
+  def read_ranking do
     with {:ok, contents} <- File.read(@file_path),
           lines <- String.split(contents, "\n", trim: true) do
           for [player, score] <-
@@ -16,9 +17,9 @@ defmodule TetrisUi.Persistence do
     end
   end
 
-  @spec write_rankings(list) :: :ok | {:error, any}
+  @spec write_ranking(list) :: :ok | {:error, any}
 
-  def write_rankings(rankings) do
+  def write_ranking(rankings) do
     rankings
     |> Enum.sort(fn ([{:player, _player1}, {:score, score1}],
                      [{:player, _player2}, {:score, score2}]) ->

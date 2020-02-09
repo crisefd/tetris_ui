@@ -130,6 +130,8 @@ defmodule TetrisUiWeb.TetrisLive do
 
   def handle_event("start", params, socket), do: {:noreply, new_game(socket, params)}
 
+  def handle_event("start_again", _, socket), do: {:noreply, start_game(socket)}
+
   def handle_info(:tick, socket = %{assigns: %{state: :playing}}) do
     {:noreply, move(:drop, socket)}
   end
@@ -198,12 +200,13 @@ defmodule TetrisUiWeb.TetrisLive do
 
   defp rank(player, score) do
     ranking =
-      Persistence.read_rankings()
+      Persistence.read_ranking()
       |> insert_into_ranking([player: player, score: score])
 
-    case Persistence.write_rankings(ranking) do
+    case Persistence.write_ranking(ranking) do
       :ok -> ranking
-      _ -> :error
+      {:error, reason} ->
+        reason
     end
   end
 
