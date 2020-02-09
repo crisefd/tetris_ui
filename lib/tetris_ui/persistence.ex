@@ -1,6 +1,5 @@
 defmodule TetrisUi.Persistence do
 
-
   @file_path Application.app_dir(:tetris_ui, "priv") <> "/csv/ranking.csv"
 
   @spec read_ranking :: list

@@ -1,7 +1,7 @@
 # Tetris GUI implementation using Phoenix LiveView.
 
 This project was developed while following  [Bruce Tate's Quadblock series](https://grox.io/series/quad).
-My implementation includes a pause game  (triggered when pressing Esc key) and next shape feature. Additionally, I added typespecs and some metaprogramming to my code base.
+My implementation includes pause game  (triggered when pressing Esc key), next shape and Player Ranking features. Additionally, I added typespecs and some metaprogramming to my code base.
 
 To start your Phoenix server:
 
