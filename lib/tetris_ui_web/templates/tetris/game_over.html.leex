@@ -1,4 +1,18 @@
 <h1>Game Over</h1>
 <h2>Your final score is: <%= @score %></h2>
+
+<table>
+    <tr>
+        <th>Player</th>
+        <th>Score</th>
+    </tr>
+    <%= for [player: player, score: score] <- @ranking do %>
+        <tr>
+            <td> <%= player %> </td>
+            <td> <%= score %> </td>
+        </tr>
+    <% end %>
+</table>
+
 <button phx-click="start"> Start again </button>
 <%= debug(assigns) %>

@@ -2,6 +2,7 @@ defmodule TetrisUiWeb.TetrisLive do
   use Phoenix.LiveView
   alias Tetris.Brick
   alias Tetris.Shape
+  alias TetrisUi.Persistence
   alias TetrisUi.Shades
 
   @type shades :: Shades.t()
@@ -53,14 +54,15 @@ defmodule TetrisUiWeb.TetrisLive do
 
   def continue_game(socket), do: assign(socket, state: :playing)
 
-  @spec new_game(socket) :: socket
+  @spec new_game(socket, map) :: socket
 
-  def new_game(socket) do
+  def new_game(socket, %{"player_name" => player_name}) do
     socket
     |> assign(
       state: :playing,
       score: 0,
-      bottom: %{}
+      bottom: %{},
+      player: player_name
     )
     |> new_brick
     |> display
@@ -126,7 +128,7 @@ defmodule TetrisUiWeb.TetrisLive do
 
   def handle_event("keydown", _, socket), do: {:noreply, socket}
 
-  def handle_event("start", _, socket), do: {:noreply, new_game(socket)}
+  def handle_event("start", params, socket), do: {:noreply, new_game(socket, params)}
 
   def handle_info(:tick, socket = %{assigns: %{state: :playing}}) do
     {:noreply, move(:drop, socket)}
@@ -136,9 +138,9 @@ defmodule TetrisUiWeb.TetrisLive do
 
   ####### Movements
 
-  @spec drop(brick, brick, map, integer) :: map
+  @spec drop(brick, brick, map, integer, binary) :: map
 
-  defp drop(brick, next_brick, bottom, score) do
+  defp drop(brick, next_brick, bottom, score, player) do
     result = Tetris.drop(brick, next_brick, bottom, Brick.color(brick))
 
     %{
@@ -146,7 +148,8 @@ defmodule TetrisUiWeb.TetrisLive do
       brick: result.brick,
       next_brick: result.next_brick,
       bottom: result.bottom,
-      score: score + result.score
+      score: score + result.score,
+      ranking: if(result.game_over, do: rank(player, score), else: :playing)
     }
   end
 
@@ -155,15 +158,17 @@ defmodule TetrisUiWeb.TetrisLive do
   defp do_move(socket = %{assigns: %{brick: brick,
                                      next_brick: next_brick,
                                      bottom: bottom,
+                                     player: player,
                                      score: score}}, :drop) do
-    assign(socket, drop(brick, next_brick, bottom, score))
+    assign(socket, drop(brick, next_brick, bottom, score, player))
   end
 
   defp do_move(socket = %{assigns: %{brick: brick,
                                      next_brick: next_brick,
                                      bottom: bottom,
+                                     player: player,
                                      score: score}}, :fast_drop) do
-    result = drop(brick, next_brick, bottom, score)
+    result = drop(brick, next_brick, bottom, score, player)
 
     if Brick.initial_location() == result.brick.location do
       socket |> assign(result)
@@ -189,5 +194,24 @@ defmodule TetrisUiWeb.TetrisLive do
     socket
     |> do_move(direction)
     |> display()
+  end
+
+  defp rank(player, score) do
+    ranking =
+      Persistence.read_rankings()
+      |> insert_into_ranking([player: player, score: score])
+
+    case Persistence.write_rankings(ranking) do
+      :ok -> ranking
+      _ -> :error
+    end
+  end
+
+  defp insert_into_ranking(rankings, item) do
+    [item | rankings]
+    |> Enum.sort(fn([player: _p1, score: s1], [player: _p2, score: s2]) ->
+      s1 >= s2
+    end)
+    |> Enum.take(10)
   end
 end

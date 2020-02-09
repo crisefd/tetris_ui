@@ -5,8 +5,10 @@
     <%= svg_footer() |> raw() %>
 </div>
 <div class="next">
+    <h3> <b> Player: </b> </h3>
+    <span> <%= @player %> </span>
     <h3> <b> Score: </b> </h3>
-    <span><%= @score %> </span>
+    <span> <%= @score %> </span>
     <h3> <b> Next: </b> </h3>
     <div>
         <%= svg_header({0, 0, 100, 100}) |> raw() %>

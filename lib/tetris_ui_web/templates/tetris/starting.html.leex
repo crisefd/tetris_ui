@@ -1,2 +1,8 @@
-<h2>Welcome !</h2>
-<button phx-click="start"> Start </button>
+<h2> Welcome! </h2>
+<form phx-submit="start">
+    <label>Player: </label>
+    <input type="text" name="player_name" required />
+    <input type="submit" required value="Start">
+    <%# <br> %>
+    <%# <button type="submit" phx-click="start"> Start </button> %>
+</form>

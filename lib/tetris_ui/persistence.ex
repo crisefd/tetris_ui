@@ -12,7 +12,7 @@ defmodule TetrisUi.Persistence do
               [player: player, score: String.to_integer(score) ]
           end
         else
-          []
+          {:error, _} -> []
     end
   end
 
