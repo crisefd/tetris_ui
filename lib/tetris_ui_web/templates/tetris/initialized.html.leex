@@ -1,4 +1,4 @@
-<div phx-keydown="keydown" phx-target="window" class="game-field"> 
+<div phx-window-keydown="keydown" class="game-field"> 
     <%= svg_header() |> raw() %>
     <%= @tetromino |> boxes() |> raw() %>
     <%= @bottom |> Map.values() |> boxes() |> raw() %>

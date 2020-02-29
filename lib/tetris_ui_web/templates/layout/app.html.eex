@@ -7,18 +7,13 @@
     <meta name="description" content="">
     <meta name="author" content="Chris Fuertes">
 
-    <title>Tetris</title>
+    <title>Elixir Tetris</title>
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>">
   </head>
 
   <body>
   <header>
       <section class="container">
-        <%# <nav role="navigation">
-          <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
-          </ul>
-        </nav> %>
         <span> <h1>Tetris with Liveview </h1> </span>
       </section>
     </header>
@@ -31,7 +26,8 @@
         <%= render @view_module, @view_template, assigns %>
       </main>
 
-    </div> <!-- /container -->
-    <script src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+    </div>
+    <%= csrf_meta_tag() %>
+    <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>

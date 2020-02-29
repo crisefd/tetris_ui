@@ -18,8 +18,8 @@ defmodule TetrisUiWeb.TetrisLive do
 
   ### LiveView
 
-  @spec mount(any, socket) :: {:ok, socket}
-  def mount(_session, socket) do
+  @spec mount(any, any, socket) :: {:ok, socket}
+  def mount(_params, _session, socket) do
     :timer.send_interval(@drop_interval_duration, self(), :tick)
     {:ok, start_game(socket)}
   end
@@ -105,12 +105,12 @@ defmodule TetrisUiWeb.TetrisLive do
 
   for {movement, key} <-
         [left: "ArrowLeft", right: "ArrowRight", turn: "ArrowUp", fast_drop: "ArrowDown"] do
-    def handle_event("keydown", %{"key" => unquote(key)}, socket) do
+    def handle_event("keydown", %{"code" => unquote(key)}, socket) do
       {:noreply, move(unquote(movement), socket)}
     end
   end
 
-  def handle_event("keydown", %{"key" => "Escape"}, socket) do
+  def handle_event("keydown", %{"code" => "Escape"}, socket) do
     new_socket =
       case socket.assigns do
         %{state: :paused} ->

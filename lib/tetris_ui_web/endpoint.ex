@@ -1,7 +1,15 @@
 defmodule TetrisUiWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :tetris_ui
 
-  socket "/live", Phoenix.LiveView.Socket
+  @session_options [
+    store: :cookie,
+    key: "_tetris_ui_key",
+    signing_salt: "9PYazI7F"
+  ]
+
+  socket "/live", Phoenix.LiveView.Socket,
+  websocket: [connect_info: [session: @session_options]]
+
   socket "/socket", TetrisUiWeb.UserSocket,
     websocket: true,
     longpoll: false
@@ -38,10 +46,7 @@ defmodule TetrisUiWeb.Endpoint do
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
-  plug Plug.Session,
-    store: :cookie,
-    key: "_tetris_ui_key",
-    signing_salt: "9PYazI7F"
+  plug Plug.Session, @session_options
 
   plug TetrisUiWeb.Router
 end
