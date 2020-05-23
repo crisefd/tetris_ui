@@ -135,10 +135,10 @@ header nav a {
 
 .game-field {
   max-width: 500px;
-  transform: translate(-100px, 10px);
+  transform: translate(100px, 10px);
 }
 
 .next {
   max-width: 110px;
-  transform: translate(210px, -400px);
+  transform: translate(310px, -400px);
 }

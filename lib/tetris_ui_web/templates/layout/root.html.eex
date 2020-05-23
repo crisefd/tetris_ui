@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Chris Fuertes">
+     <%= csrf_meta_tag() %>
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>">
+    <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+    <title>Elixir Tetris</title>
+  </head>
+
+  <body>
+  <header>
+      <section class="container">
+        <span> <h1>Tetris with Liveview </h1> </span>
+      </section>
+    </header>
+
+    <%= @inner_content %>
+
+  </body>
+</html>

@@ -15,7 +15,7 @@ config :tetris_ui, TetrisUiWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "W0c7STjuqYHZ6cbZq9tPEc/5WouCts4ciVyPrSrsRbi1hbZj1FPtSci+KKmTDGLr",
   render_errors: [view: TetrisUiWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: TetrisUi.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub_server: TetrisUi.PubSub
 
 # Configures Elixir's Logger
 config :logger, :console,
