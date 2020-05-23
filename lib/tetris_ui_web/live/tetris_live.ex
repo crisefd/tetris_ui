@@ -105,12 +105,12 @@ defmodule TetrisUiWeb.TetrisLive do
 
   for {movement, key} <-
         [left: "ArrowLeft", right: "ArrowRight", turn: "ArrowUp", fast_drop: "ArrowDown"] do
-    def handle_event("keydown", %{"code" => unquote(key)}, socket) do
+    def handle_event("keydown", %{"key" => unquote(key)}, socket) do
       {:noreply, move(unquote(movement), socket)}
     end
   end
 
-  def handle_event("keydown", %{"code" => "Escape"}, socket) do
+  def handle_event("keydown", %{"key" => "Escape"}, socket) do
     new_socket =
       case socket.assigns do
         %{state: :paused} ->
