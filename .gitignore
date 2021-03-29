@@ -35,3 +35,6 @@ npm-debug.log
 
 # Dialyzer
 .elixir_ls/
+
+# Persistency
+priv/csv/ranking.csv
