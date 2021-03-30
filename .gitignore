@@ -37,4 +37,8 @@ npm-debug.log
 .elixir_ls/
 
 # Persistency
-priv/csv/ranking.csv
+/priv/csv/ranking.csv
+
+# asdf
+.tool-versions
+
