@@ -5,12 +5,12 @@
 # is restricted to this project.
 
 # General application configuration
-use Mix.Config
+import Config
 
 # Configures the endpoint
 config :tetris_ui, TetrisUiWeb.Endpoint,
- live_view: [
-     signing_salt: "EeUoHSopUOP24b2/OkVJpRmcmKGRkcMm"
+  live_view: [
+    signing_salt: "EeUoHSopUOP24b2/OkVJpRmcmKGRkcMm"
   ],
   url: [host: "localhost"],
   secret_key_base: "W0c7STjuqYHZ6cbZq9tPEc/5WouCts4ciVyPrSrsRbi1hbZj1FPtSci+KKmTDGLr",

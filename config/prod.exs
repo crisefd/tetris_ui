@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information
@@ -14,7 +14,7 @@ config :tetris_ui, TetrisUiWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 config :tetris_ui,
-       debug: false
+  debug: false
 
 # Do not print debug messages in production
 config :logger, level: :info

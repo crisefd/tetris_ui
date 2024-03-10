@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -22,7 +22,7 @@ config :tetris_ui, TetrisUiWeb.Endpoint,
   ]
 
 config :tetris_ui,
-       debug: false
+  debug: false
 
 # ## SSL Support
 #
