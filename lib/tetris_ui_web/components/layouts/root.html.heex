@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="Chris Fuertes" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script
+      phx-track-static
+      type="text/javascript"
+      src={~p"/assets/app.js"}
+    >
+    </script>
+    <title>Elixir Tetris</title>
+  </head>
+
+  <body>
+    <header>
+      <section class="container">
+        <span>
+          <h1>Tetris with Liveview</h1>
+        </span>
+      </section>
+    </header>
+
+    <%= @inner_content %>
+  </body>
+</html>
